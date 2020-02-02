@@ -27,25 +27,24 @@ CRGB ttleds[TT_LEDS],
         rrleds[RR_LEDS];
 
 // Colors
-CRGB blk = CRGB::Black;
-CRGB red = CHSV(0, 255, 255);
-CRGB prp = CHSV(192, 255, 255);
-CRGB ylw = CHSV(64, 255, 255);
+CHSV blk(0, 0, 0);
+CHSV red(0, 255, 255);
+CHSV prp(192, 255, 255);
+//CHSV org(32, 255, 255);
+CHSV ylw(50, 255, 255);
+CHSV grn(96, 255, 255);
 
-// Estimated span of all the leds
-int totallen = 57;
-
-void light_order(CRGB col) {
+void light_order(CHSV col, uint32_t delay_ms) {
     for (int i=0; i<TT_LEDS; i++) {
         // TT_LEDS are the longest, so inside this loop, handle other strips by checking their length against i
         ttleds[i] = col;
         if (i<DT_LEDS) { dtleds[i] = col;}
-        if (i<RR_LEDS) { rrleds[i] = lrleds[i] = col;}
+        if (i<RR_LEDS) { rrleds[i] = col;}
         if (i<SS_LEDS) { ssleds[i] = col;}
         if (i<LR_LEDS) { lrleds[i] = col;}
     }
     FastLED.show();
-    delay(10000);
+    delay(delay_ms);
 }
 
 void setup() {
@@ -60,11 +59,38 @@ void setup() {
     FastLED.setBrightness(BRIGHTNESS);
     // set all LEDs to black starting out
     FastLED.clear();
-    delay(1000);
+    // Wait 3s before starting up to ensure system's ready
+    delay(3000);
+    startup(grn, prp, red, 500);
 }
 
+void startup(CHSV col1, CHSV col2, CHSV col3, uint32_t delay_ms) {
+    // Do something different at startup
+    light_order(col1, delay_ms);
+    light_order(col2, delay_ms);
+    light_order(col3, delay_ms);
+}
+
+void quick_blink(CHSV col1, CHSV col2, uint8_t n_times, uint8_t delay_ms) {
+    // Produces a fast round of blinks alternating between two colors
+    for (int i=0; i<n_times; i++) {
+        light_order(col1, delay_ms);
+        light_order(col2, delay_ms);
+    }
+}
+
+void single_color_cycle(CHSV col, uint32_t secs, uint32_t blink_every_s) {
+    uint8_t total_cycles = ceil(secs / blink_every_s);
+    for (int i=0; i<total_cycles; i++) {
+        light_order(col, blink_every_s * 1000);
+        quick_blink(blk, col, 10, 50);
+    }
+}
 
 // main program
 void loop() {
-    light_order();
+    single_color_cycle(red, 300, 10);
+    single_color_cycle(prp, 120, 10);
+    single_color_cycle(grn, 60, 10);
+    single_color_cycle(ylw, 60, 10);
 }
