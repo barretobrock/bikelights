@@ -18,6 +18,7 @@
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 #define BRIGHTNESS 50
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 // Light strips
 CRGB ttleds[TT_LEDS],
@@ -29,10 +30,17 @@ CRGB ttleds[TT_LEDS],
 // Colors
 CHSV blk(0, 0, 0);
 CHSV red(0, 255, 255);
-CHSV prp(192, 255, 255);
-//CHSV org(32, 255, 255);
+CHSV org(32, 255, 255);
 CHSV ylw(50, 255, 255);
 CHSV grn(96, 255, 255);
+CHSV blu(160, 255, 255);
+CHSV cya(127, 255, 255);
+CHSV prp(192, 255, 255);
+CHSV mag(210, 255, 255);
+CHSV wht(100, 0, 255);
+
+CHSV startupArr[] = { red, org, red, org, ylw, red, org, ylw, grn, blu, cya, prp, mag, wht};
+uint8_t startupArrLen = ARRAY_SIZE(startupArr);
 
 void light_order(CHSV col, uint32_t delay_ms) {
     for (int i=0; i<TT_LEDS; i++) {
@@ -61,14 +69,14 @@ void setup() {
     FastLED.clear();
     // Wait 3s before starting up to ensure system's ready
     delay(3000);
-    startup(grn, prp, red, 500);
+    startup(120);
 }
 
-void startup(CHSV col1, CHSV col2, CHSV col3, uint32_t delay_ms) {
+void startup(uint32_t delay_ms) {
     // Do something different at startup
-    light_order(col1, delay_ms);
-    light_order(col2, delay_ms);
-    light_order(col3, delay_ms);
+    for(int i=0; i<startupArrLen; i++){
+        light_order(startupArr[i], delay_ms);
+    }
 }
 
 void quick_blink(CHSV col1, CHSV col2, uint8_t n_times, uint8_t delay_ms) {
@@ -79,18 +87,20 @@ void quick_blink(CHSV col1, CHSV col2, uint8_t n_times, uint8_t delay_ms) {
     }
 }
 
-void single_color_cycle(CHSV col, uint32_t secs, uint32_t blink_every_s) {
+void single_color_cycle(CHSV col, CHSV col2, uint32_t secs, uint32_t blink_every_s, bool allow_blink) {
     uint8_t total_cycles = ceil(secs / blink_every_s);
     for (int i=0; i<total_cycles; i++) {
         light_order(col, blink_every_s * 1000);
-        quick_blink(blk, col, 10, 50);
+        if (allow_blink) {
+            quick_blink(col2, col, 5, 60);
+        }
     }
 }
 
 // main program
 void loop() {
-    single_color_cycle(red, 300, 10);
-    single_color_cycle(prp, 120, 10);
-    single_color_cycle(grn, 60, 10);
-    single_color_cycle(ylw, 60, 10);
+    single_color_cycle(red, blk, 400, 10, true);
+    single_color_cycle(prp, blk, 300, 10, true);
+    single_color_cycle(grn, blk, 60, 10, false);
+    single_color_cycle(blu, blk, 60, 10, false);
 }
