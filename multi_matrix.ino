@@ -67,7 +67,7 @@ void setup() {
 
 void startup(int delay_ms) {
     // Do something different at startup
-    cylon(0, delay_ms, 5, true, true);
+    cylon(0, delay_ms, 25, true, true);
 
 }
 
@@ -142,4 +142,5 @@ void loop() {
     single_color_cycle(red, blk, 400, 10, true);
     cylon(192, 10, 120, false, false);
     single_color_cycle(prp, blk, 300, 10, true);
+    cylon(0, 10, 60, true, true);
 }
